@@ -7,19 +7,10 @@ use DeRidderDenHertog\DeRidderDenHertog;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\AggregateServiceProvider;
 use InvalidArgumentException;
-use Saloon\Config;
-use Saloon\HttpSender\HttpSender;
 use Webmozart\Assert\Assert;
 
 final class ServiceProvider extends AggregateServiceProvider
 {
-    public function boot(): void
-    {
-        if (! class_exists('Saloon\Laravel\SaloonServiceProvider')) {
-            Config::$defaultSender = HttpSender::class;
-        }
-    }
-
     public function register(): void
     {
         $this->app->singleton(DeRidderDenHertog::class, $this->createRenH(...));
