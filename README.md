@@ -27,8 +27,11 @@ After that, define your `renh` credentials inside the `config/services.php` conf
 ```php
 'renh' => [
     'api_guid' => env('RENH_API_GUID'),
+    'env' => env('RENH_ENV', 'production'),
 ],
 ```
+
+Set `env` to `test` to send requests to the De Ridder & Den Hertog test environment instead of production.
 
 ## Usage
 

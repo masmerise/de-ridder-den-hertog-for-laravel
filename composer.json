@@ -17,7 +17,7 @@
         "php": "~8.5",
         "illuminate/contracts": "^13.0",
         "illuminate/support": "^13.0",
-        "masmerise/de-ridder-den-hertog-php-sdk": "^1.0.0",
+        "masmerise/de-ridder-den-hertog-php-sdk": "^1.2.0",
         "webmozart/assert": "^2.0"
     },
     "require-dev": {

@@ -2,7 +2,6 @@
 
 namespace DeRidderDenHertog\Laravel;
 
-use DeRidderDenHertog\Authentication\ApiGuid;
 use DeRidderDenHertog\DeRidderDenHertog;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\AggregateServiceProvider;
@@ -20,20 +19,34 @@ final class ServiceProvider extends AggregateServiceProvider
     /** @throws InvalidArgumentException */
     private function createRenH(Application $app): DeRidderDenHertog
     {
-        $guid = $this->guid($app['config']->get('services.renh'));
+        $config = $this->config($app['config']->get('services.renh'));
 
-        return DeRidderDenHertog::authenticate($guid);
+        /** Authentication */
+        $renh = DeRidderDenHertog::authenticate($config->guid());
+
+        /** Environment */
+        if ($config->wantsTestEnv()) {
+            $renh->useTest();
+        }
+
+        return $renh;
     }
 
     /** @throws InvalidArgumentException */
-    private function guid(mixed $config): ApiGuid
+    private function config(mixed $config): Config
     {
         Assert::notNull($config, 'The RenH config is missing.');
         Assert::isArray($config, 'The RenH config must be an array.');
         Assert::keyExists($config, 'api_guid', 'The RenH config is missing the "api_guid" key.');
         Assert::string($config['api_guid'], 'The RenH config is invalid and the "api_guid" key must be a string.');
 
-        /** @var array{api_guid: string} $config */
-        return ApiGuid::fromString($config['api_guid']);
+        $env = $config['env'] ?? 'production';
+
+        Assert::string($env, 'The RenH config is invalid and the "env" key must be a string.');
+
+        return new Config(
+            guid: $config['api_guid'],
+            env: $env,
+        );
     }
 }
