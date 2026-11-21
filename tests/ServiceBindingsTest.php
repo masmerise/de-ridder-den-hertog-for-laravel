@@ -2,9 +2,11 @@
 
 namespace DeRidderDenHertog\Laravel\Tests;
 
+use DeRidderDenHertog\Core\Http\DeRidderDenHertogConnector;
 use DeRidderDenHertog\DeRidderDenHertog;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\Test;
+use ReflectionProperty;
 
 final class ServiceBindingsTest extends DeRidderDenHertogTestCase
 {
@@ -76,5 +78,62 @@ final class ServiceBindingsTest extends DeRidderDenHertogTestCase
 
         // Assert
         $this->assertInstanceOf(DeRidderDenHertog::class, $instance);
+    }
+
+    #[Test]
+    public function renh_uses_production_environment_by_default(): void
+    {
+        // Arrange
+        $this->app['config']->set('services.renh', [
+            'api_guid' => '{4844a45c-33d1-4937-83f4-366d36449eaf}',
+        ]);
+
+        // Act
+        $url = $this->baseUrl($this->app[DeRidderDenHertog::class]);
+
+        // Assert
+        $this->assertSame('https://renh.online/RHAPI_WEB/awws/RHAPI.awws', $url);
+    }
+
+    #[Test]
+    public function renh_uses_test_environment_if_configured(): void
+    {
+        // Arrange
+        $this->app['config']->set('services.renh', [
+            'api_guid' => '{4844a45c-33d1-4937-83f4-366d36449eaf}',
+            'env' => 'test',
+        ]);
+
+        // Act
+        $url = $this->baseUrl($this->app[DeRidderDenHertog::class]);
+
+        // Assert
+        $this->assertSame('https://test.renh.online/rhapi_web/awws/rhapi.awws', $url);
+    }
+
+    #[Test]
+    public function exception_is_thrown_if_env_is_invalid(): void
+    {
+        // Arrange
+        $this->app['config']->set('services.renh', [
+            'api_guid' => '{4844a45c-33d1-4937-83f4-366d36449eaf}',
+            'env' => true,
+        ]);
+
+        // Assert
+        $this->expectException(InvalidArgumentException::class);
+        $this->expectExceptionMessage('The RenH config is invalid and the "env" key must be a string.');
+
+        // Act
+        $this->app[DeRidderDenHertog::class];
+    }
+
+    private function baseUrl(DeRidderDenHertog $renh): string
+    {
+        $client = new ReflectionProperty($renh, 'client')->getValue($renh);
+
+        $this->assertInstanceOf(DeRidderDenHertogConnector::class, $client);
+
+        return $client->resolveBaseUrl();
     }
 }
